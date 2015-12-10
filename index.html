@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Phaser</title>
+	<script type="text/javascript" src="phaser.min.js"></script>
+</head>
+<body>
+<script type="text/javascript">
+	var game = new Phaser.Game(1024,600,Phaser.AUTO,'',{preload:preload,create:create,update:update});
+
+	var hero;
+	var grounds;
+	var keys;
+	var elements;
+	var elapsed = 0;
+
+	function preload(){
+		game.load.image('bg','img/bg.png');
+		game.load.image('blockerMad1','img/blockerMad1.png');
+		game.load.image('coinGold','img/coinGold.png');
+		game.load.image('castle','img/castle.png');
+		game.load.image('p2_stand','img/p2_stand.png');
+	}
+
+	function create(){
+		
+		game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+		game.scale.pageAlignHorizontally = true;
+		game.scale.pageAlignVertically = true;
+		game.physics.startSystem(Phaser.Physics.ARCADE);
+
+		var bg = game.add.tileSprite(0,0,1024,600,'bg');
+		hero = game.add.sprite(0,250,'p2_stand');
+
+		keys = game.input.keyboard.createCursorKeys();
+
+		game.physics.arcade.enable(hero);
+		hero.body.collideWorldBounds = true;
+		hero.anchor.setTo(0.5,0.5);	
+		grounds = game.add.group();
+		elements = game.add.group();
+		game.physics.arcade.gravity.y = 1000;
+		for(var i=0;i<20;i++){
+			var g = game.add.sprite(0,0,'castle');
+			g.x = g.width * i;
+			g.y = 600-g.height;
+			grounds.add(g);
+			game.physics.arcade.enable(g);
+			g.body.allowGravity = false;
+			g.body.immovable = true;
+		}
+	}
+
+	function update(){
+		game.physics.arcade.collide(hero,grounds);
+		game.physics.arcade.overlap(hero,elements,null,checkCollision);
+		hero.body.velocity.x = 0;
+		if(keys.left.isDown){
+			hero.body.velocity.x = -50;
+			hero.scale.setTo(-1,1);
+		}
+		if(keys.right.isDown){
+			hero.body.velocity.x = 50
+			hero.scale.setTo(1,1);
+		}
+		if(keys.up.isDown){
+			if(hero.body.touching.down){
+				hero.body.velocity.y = -350;
+			}
+		}
+		elapsed+=game.time.elapsed;
+		if(elapsed>=1000){
+			elapsed = 0;
+			var rand = Math.random();
+			var element;
+			if(rand >=0.5){
+				element = game.add.sprite(0,0,'blockerMad1');
+			}else{
+				element = game.add.sprite(0,0,'coinGold');
+			}
+			element.x = game.rnd.integerInRange(0,game.width-element.width);
+			elements.add(element);
+			game.physics.arcade.enable(element);
+			element.body.velocity.y = 150;
+			element.checkWorldBounds = true;
+			element.outOfBoundsKill = true;
+			element.events.onOutOfBounds.add(check);
+		}
+		
+	}
+	function check(){
+		//console.log('muere');	
+	}
+
+	function checkCollision(sp1,sp2){
+		sp2.kill();
+	}
+
+</script>
+</body>
+</html>
